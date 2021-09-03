@@ -3,6 +3,8 @@ import "./App.css";
 import React, { useState } from "react";
 import TaskForm from "./components/TaskForm";
 import TaskItem from "./components/TaskItem";
+import Timer from "./components/Timer";
+import FunctionnalTimer from "./components/FunctionnalTimer";
 
 const TASKS = [
   { id: 1, text: "Aller au casino", done: false },
@@ -12,6 +14,7 @@ const TASKS = [
 
 const App = () => {
   const [tasks, setTasks] = useState(TASKS);
+  const [displayTimer, setDisplayTimer] = useState(false);
 
   const createTask = (text) => {
     // 1. Créer un objet task (id, text, done)
@@ -38,6 +41,13 @@ const App = () => {
   return (
     <>
       <h1>Ma TodoList</h1>
+
+      <button onClick={() => setDisplayTimer(!displayTimer)}>
+        Afficher / Cacher le timer
+      </button>
+
+      {displayTimer === true && <FunctionnalTimer />}
+
       <ul>
         {tasks.map((t) => (
           <TaskItem task={t} onChangeStatus={changeTaskStatus} key={t.id} />
