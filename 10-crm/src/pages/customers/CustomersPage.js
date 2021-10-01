@@ -1,7 +1,53 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
 import Pagination from "../../components/Pagination";
+import { deleteCustomer } from "../../redux/store";
 
-const CustomersPage = ({ customers, onDelete }) => {
+import { getDatabase, ref, onValue, remove } from "firebase/database";
+import { Link } from "react-router-dom";
+
+const CustomersPage = () => {
+  const [customers, setCustomers] = useState([]);
+
+  useEffect(() => {
+    // 1. Créer une référence aux customers dans Firebase
+    const db = getDatabase();
+
+    // 2. On va SUIVRE les changements de cette référence
+    const customersRef = ref(db, "customers");
+
+    // 3. A chaque changement : on répercute les changements dans le state
+    const unsubscribe = onValue(customersRef, (data) => {
+      const customersData = data.val();
+
+      setCustomers(
+        Object.keys(customersData).map((key) => {
+          return {
+            ...customersData[key],
+            id: key,
+          };
+        })
+      );
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleDelete = (id) => {
+    // 1. Une référence au customer précis qu'on veut supprimer (getDatabase, ref)
+    const db = getDatabase();
+    const customerRef = ref(db, "customers/" + id);
+
+    // 2. Supprimer la référence (remove)
+    remove(customerRef);
+
+    toast.success("Le client a bien été supprimé");
+  };
+
+  const length = 5;
+
   const [pagination, setPagination] = useState({
     page: 1,
     start: 0,
@@ -29,13 +75,15 @@ const CustomersPage = ({ customers, onDelete }) => {
             <tr key={c.id}>
               <td>{c.id}</td>
               <td>
-                {c.firstName} {c.lastName}
+                <Link to={"/customers/" + c.id}>
+                  {c.firstName} {c.lastName}
+                </Link>
               </td>
               <td>{c.email}</td>
               <td>
                 <button
                   className="btn btn-sm btn-danger"
-                  onClick={() => onDelete(c.id)}
+                  onClick={() => handleDelete(c.id)}
                 >
                   Supprimer
                 </button>
@@ -48,7 +96,7 @@ const CustomersPage = ({ customers, onDelete }) => {
         page={1}
         count={customers.length}
         onPageChange={handlePageChange}
-        itemsPerPage={5}
+        itemsPerPage={length}
       />
     </>
   );

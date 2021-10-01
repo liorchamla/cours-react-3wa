@@ -1,7 +1,9 @@
+import { getDatabase, ref, set } from "@firebase/database";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { useHistory } from "react-router-dom";
 
-const CustomerFormPage = (props) => {
+const CustomerFormPage = () => {
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
@@ -19,7 +21,12 @@ const CustomerFormPage = (props) => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    props.onCreate(customer);
+    const db = getDatabase();
+    const newCustomerRef = ref(db, "customers/" + Date.now());
+
+    set(newCustomerRef, customer);
+
+    toast.success("Le client a bien été ajouté");
 
     history.push("/customers");
   };

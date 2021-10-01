@@ -5,37 +5,25 @@ import {
   Route,
   Switch,
   withRouter,
+  Redirect,
 } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
 import CustomersPage from "./pages/customers/CustomersPage";
 import CustomerFormPage from "./pages/customer-form/CustomerFormPage";
-import { useState } from "react";
-import CUSTOMERS from "./customers";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./components/Navbar";
+import CustomerPage from "./pages/customer/CustomerPage";
+import InvoicesPage from "./pages/invoices/InvoicesPage";
+import RegisterPage from "./pages/register/RegisterPage";
+import LoginPage from "./pages/login/LoginPage";
+import { getAuth } from "@firebase/auth";
+import ProtectedRoute from "./components/ProtectedRoute";
+import RegisterDetailsPage from "./pages/register/RegisterDetailsPage";
 
 function App() {
-  const [customers, setCustomers] = useState(CUSTOMERS);
-
-  const deleteCustomer = (id) => {
-    const updatedCustomers = customers.filter((c) => c.id !== id);
-
-    setCustomers(updatedCustomers);
-
-    toast.success("Le client a bien été supprimé");
-  };
-
-  const createCustomer = (customer) => {
-    customer.id = Date.now();
-
-    const updatedCustomers = [...customers, customer];
-
-    setCustomers(updatedCustomers);
-
-    toast.success("Le client a bien été ajouté");
-  };
+  const auth = getAuth();
 
   return (
     <BrowserRouter>
@@ -45,12 +33,34 @@ function App() {
 
       <main className="container pt-5">
         <Switch>
-          <Route path="/customers/create">
-            <CustomerFormPage onCreate={createCustomer} />
-          </Route>
-          <Route path="/customers">
-            <CustomersPage customers={customers} onDelete={deleteCustomer} />
-          </Route>
+          <Route path="/account/register" component={RegisterPage} />
+          <Route path="/account/login" component={LoginPage} />
+
+          <ProtectedRoute
+            path="/account/complete"
+            component={RegisterDetailsPage}
+            redirectTo="/account/login"
+          />
+          <ProtectedRoute
+            redirectTo="/account/login"
+            path="/customers/create"
+            component={CustomerFormPage}
+          />
+          <ProtectedRoute
+            path="/customers/:id"
+            component={CustomerPage}
+            redirectTo="/account/login"
+          />
+          <ProtectedRoute
+            path="/customers"
+            component={CustomersPage}
+            redirectTo="/account/login"
+          />
+          <ProtectedRoute
+            path="/invoices"
+            component={InvoicesPage}
+            redirectTo="/account/login"
+          />
         </Switch>
       </main>
     </BrowserRouter>
